@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option go_package = "github.com/durd07/tra";
+
+package envoy.extensions.filters.network.sip_proxy.v3;
+
+service TraService {
+	rpc UpdateLskpmc(Lskpmc) returns (String) {}
+        rpc GetIpFromLskpmc(String) returns (String) {}
+
+	rpc Subscribe(String) returns (stream LskpmcResponse) {}
+}
+
+message String {
+	string data = 1;
+}
+
+message LskpmcResponse {
+	repeated Lskpmc lskpmcs = 1;
+}
+
+message Lskpmc {
+	string key = 1;
+	string val = 2;
+}
+
+message Ret {
+	int32 ret = 1;
+}
