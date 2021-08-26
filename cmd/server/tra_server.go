@@ -33,29 +33,27 @@ type server struct {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *server) UpdateLskpmc(ctx context.Context, in *pb.LskpmcRequest) (int32, error) {
+func (s *server) UpdateLskpmc(ctx context.Context, in *pb.Lskpmc) (*pb.String, error) {
 	p, _ := peer.FromContext(ctx)
-	klog.Infof("GRPC UpdateLskpmc Received from %s : %v", p.Addr.String(), in.lskpmcs)
+	fmt.Printf("GRPC UpdateLskpmc Received from %s : %v=%v", p.Addr.String(), in.Key, in.Val)
 
-	for l := range in.lskpmcs {
-		lskpmcs[l.key] = l.val
-	}
+	lskpmcs[in.Key] = in.Val
 
-	return 0, nil
+	return &pb.String{}, nil
 }
 
-func (s *server) GetIpFromLskpmc(ctx context.Context, in string) (string, error) {
+func (s *server) GetIpFromLskpmc(ctx context.Context, in *pb.String) (*pb.String, error) {
 	p, _ := peer.FromContext(ctx)
-	klog.Infof("GRPC GetIpFromLskpmc Received from %s : %v", p.Addr.String(), in)
-	return lskpmcs[in], nil
+	fmt.Printf("GRPC GetIpFromLskpmc Received from %s : %v", p.Addr.String(), in)
+	return &pb.String{Data: lskpmcs[in.Data]}, nil
 }
 
-func (s *server) Subscribe(in *pb.LskpmcRequest, stream pb.TraService_SubscribeServer) error {
+func (s *server) Subscribe(in *pb.String, stream pb.TraService_SubscribeServer) error {
 	p, _ := peer.FromContext(stream.Context())
 	peer_addr := p.Addr.String()
-	klog.Infof("GRPC Subscribe Recieved from %s", peer_addr)
+	fmt.Printf("GRPC Subscribe Recieved from %s", peer_addr)
 
-	streams[stream] = struct{}
+	streams[stream] = struct{}{}
 
 	change_chan <- struct{}{}
 	for {
@@ -73,16 +71,22 @@ var change_chan = make(chan struct{})
 func (s *server) Notify() error {
 	for {
 		_ = <-change_chan
-		klog.Infof("GRPC Notify %+v\n", streamCache)
+		fmt.Printf("GRPC Notify %+v\n", streams)
 		for stream, _ := range streams {
 			if err := stream.Context().Err(); err != nil {
 				delete(streams, stream)
 				continue
 			}
-			stream.Send(lskpmcs)
+
+			resp := pb.LskpmcResponse{Lskpmcs: []*pb.Lskpmc{}}
+			for k, v := range lskpmcs {
+				lskpmc := pb.Lskpmc{Key :k, Val: v}
+				resp.Lskpmcs = append(resp.Lskpmcs, &lskpmc)
+			}
+			stream.Send(&resp)
 
 			p, _ := peer.FromContext(stream.Context())
-			klog.Infof("     send to %+v\n", p.Addr.String())
+			fmt.Printf("     send to %+v\n", p.Addr.String())
 		}
 	}
 }
@@ -90,7 +94,7 @@ func (s *server) Notify() error {
 func grpcServer() {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		klog.Fatalf("failed to listen: %v", err)
+		fmt.Printf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
 	myserver := server{}
@@ -98,24 +102,24 @@ func grpcServer() {
 
 	pb.RegisterTraServiceServer(s, &myserver)
 	if err := s.Serve(lis); err != nil {
-		klog.Fatalf("failed to serve: %v", err)
+		fmt.Printf("failed to serve: %v", err)
 	}
 }
 
 
-func lskpmcHandler(w http.ResponseWriter, r *http.Request) {
+func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			klog.Infoln("Read failed:", err)
+			fmt.Printf("Read failed:", err)
 		}
 		defer r.Body.Close()
 
 		err = json.Unmarshal(b, &lskpmcs)
 		if err != nil {
-			klog.Infoln("json format error:", err)
+			fmt.Printf("json format error:", err)
 		}
-		klog.Infof("%s update_data: %#v", r.Method, lskpmcs)
+		fmt.Printf("%s update_data: %#v", r.Method, lskpmcs)
 
 		change_chan <- struct{}{}
 
@@ -125,11 +129,11 @@ func lskpmcHandler(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "GET" {
 		b, err := json.Marshal(lskpmcs)
 		if err != nil {
-			klog.Infoln("json format error:", err)
+			fmt.Printf("json format error:", err)
 			return
 		}
 
-		klog.Infof("%s get_data: %#v", r.Method, lskpmcs)
+		fmt.Printf("%s get_data: %#v", r.Method, lskpmcs)
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -142,7 +146,7 @@ func lskpmcHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func httpServer() {
-	http.HandleFunc("/lskpmc", lskpmcHandler)
+	http.HandleFunc("/lskpmcs", lskpmcsHandler)
 	http.ListenAndServe(":50052", nil)
 }
 

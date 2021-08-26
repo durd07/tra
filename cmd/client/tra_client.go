@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"context"
 	"log"
 	"io"
@@ -31,7 +30,7 @@ func recvNotification(stream pb.TraService_SubscribeClient) {
 			log.Fatalf("failed to recv %v", err)
 		}
 
-		log.Println(resp, err)
+		log.Printf("RECV NOTIFY %v %v\n", resp, err)
 	}
 }
 
@@ -47,13 +46,13 @@ func main() {
 		resp, _ := http.Post("http://127.0.0.1:50052/lskpmcs", body_type, req)
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println(string(body))
+		log.Printf("POST resp %s\n", string(body))
 
 		resp, _ = http.Get("http://127.0.0.1:50052/lskpmcs")
 		body, _ = ioutil.ReadAll(resp.Body)
-		fmt.Println(string(body))
+		log.Printf("GET  resp %s\n", string(body))
 	} else {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	// Set up a connection to the server.
@@ -67,7 +66,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100000)
 	defer cancel()
 
-	stream, err := c.Subscribe(ctx, &pb.TraRequest{})
+	stream, err := c.Subscribe(ctx, &pb.String{})
 	if err != nil {
 		log.Fatalf("could not query node : %v", err)
 	}

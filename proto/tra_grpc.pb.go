@@ -197,5 +197,5 @@ var TraService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "api/tra.proto",
+	Metadata: "proto/tra.proto",
 }
