@@ -1,29 +1,83 @@
 syntax = "proto3";
 
-option go_package = "github.com/durd07/tra";
+package envoy.extensions.filters.network.sip_proxy.tra.v3;
 
-package envoy.extensions.filters.network.sip_proxy.v3;
+//import "envoy/config/core/v3/config_source.proto";
+//import "envoy/config/core/v3/grpc_service.proto";
+
+//import "validate/validate.proto";
+//import "google/protobuf/duration.proto";
+//import "udpa/annotations/status.proto";
+//import "udpa/annotations/versioning.proto";
+
+option go_package = "github.com/durd07/tra";
+option java_package = "io.envoyproxy.envoy.extensions.filters.network.sip_proxy.tra.v3";
+option java_outer_classname = "TraProto";
+option java_multiple_files = true;
+//option (udpa.annotations.file_status).package_version_status = ACTIVE;
+
+// [#protodoc-title: Tra]
+// Sip tra :ref:`configuration overview <config_sip_filters_tra>`.
 
 service TraService {
-	rpc UpdateLskpmc(Lskpmc) returns (String) {}
-        rpc GetIpFromLskpmc(String) returns (String) {}
+	rpc UpdateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc GetIpFromLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
 
-	rpc Subscribe(String) returns (stream LskpmcResponse) {}
+	rpc Subscribe(TraServiceRequest) returns (stream TraServiceResponse) {}
 }
 
-message String {
-	string data = 1;
+//message TraServiceConfig {
+//	// Specifies the gRPC service that hosts the rate limit service. The client
+//	// will connect to this cluster when it needs to make rate limit service
+//	// requests.
+//	config.core.v3.GrpcService grpc_service = 1 [(validate.rules).message = {required: true}];
+//
+//	// API version for rate limit transport protocol. This describes the rate limit gRPC endpoint and
+//	// version of messages used on the wire.
+//	config.core.v3.ApiVersion transport_api_version = 2 [(validate.rules).enum = {defined_only: true}];
+//	google.protobuf.Duration timeout = 3;
+//}
+
+message TraServiceRequest {
+	oneof request {
+		UpdateLskpmcRequest update_lskpmc_request = 1;
+		GetIpFromLskpmcRequest get_ip_from_lskpmc_request = 2;
+		SubscribeRequest subscribe_request = 3;
+	}
 }
 
-message LskpmcResponse {
-	repeated Lskpmc lskpmcs = 1;
+message TraServiceResponse {
+	oneof response {
+		UpdateLskpmcResponse update_lskpmc_response = 1;
+		GetIpFromLskpmcResponse get_ip_from_lskpmc_response = 2;
+		SubscribeResponse subscribe_response = 3;
+	}
+}
+
+message UpdateLskpmcRequest {
+	Lskpmc lskpmc = 1;
+}
+
+message UpdateLskpmcResponse {
+	int32 ret = 1;
+}
+
+message GetIpFromLskpmcRequest {
+	string key = 1;
+}
+
+message GetIpFromLskpmcResponse {
+	string ip = 1;
+}
+
+message SubscribeRequest {
+}
+
+message SubscribeResponse {
+	repeated Lskpmc lskpmc = 1;
 }
 
 message Lskpmc {
 	string key = 1;
 	string val = 2;
-}
-
-message Ret {
-	int32 ret = 1;
 }
