@@ -67,14 +67,14 @@ message GetIpFromLskpmcRequest {
 }
 
 message GetIpFromLskpmcResponse {
-	string ip = 1;
+	Lskpmc lskpmc = 1;
 }
 
 message SubscribeRequest {
 }
 
 message SubscribeResponse {
-	repeated Lskpmc lskpmc = 1;
+	repeated Lskpmc lskpmcs = 1;
 }
 
 message Lskpmc {

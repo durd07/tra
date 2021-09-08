@@ -66,7 +66,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100000)
 	defer cancel()
 
-	stream, err := c.Subscribe(ctx, &pb.String{})
+	stream, err := c.Subscribe(ctx, &pb.TraServiceRequest{})
 	if err != nil {
 		log.Fatalf("could not query node : %v", err)
 	}

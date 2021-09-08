@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net"
 	"time"
 
@@ -33,25 +33,28 @@ type server struct {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *server) UpdateLskpmc(ctx context.Context, in *pb.Lskpmc) (*pb.String, error) {
+func (s *server) UpdateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
-	fmt.Printf("GRPC UpdateLskpmc Received from %s : %v=%v", p.Addr.String(), in.Key, in.Val)
+	key := in.GetUpdateLskpmcRequest().GetLskpmc().Key
+	val := in.GetUpdateLskpmcRequest().GetLskpmc().Val
+	log.Printf("GRPC UpdateLskpmc Received from %s : %v=%v", p.Addr.String(), key, val)
 
-	lskpmcs[in.Key] = in.Val
+	lskpmcs[key] = val
 
-	return &pb.String{}, nil
+	return &pb.TraServiceResponse{ Response: &pb.TraServiceResponse_UpdateLskpmcResponse{UpdateLskpmcResponse : &pb.UpdateLskpmcResponse{Ret: 0} }}, nil
 }
 
-func (s *server) GetIpFromLskpmc(ctx context.Context, in *pb.String) (*pb.String, error) {
+func (s *server) GetIpFromLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
-	fmt.Printf("GRPC GetIpFromLskpmc Received from %s : %v", p.Addr.String(), in)
-	return &pb.String{Data: lskpmcs[in.Data]}, nil
+	log.Printf("GRPC GetIpFromLskpmc Received from %s : %v", p.Addr.String(), in)
+	key := in.GetGetIpFromLskpmcRequest().GetKey()
+	return &pb.TraServiceResponse{ Response: &pb.TraServiceResponse_GetIpFromLskpmcResponse{GetIpFromLskpmcResponse: &pb.GetIpFromLskpmcResponse{Lskpmc: &pb.Lskpmc{Key: key, Val: lskpmcs[key]}}}}, nil
 }
 
-func (s *server) Subscribe(in *pb.String, stream pb.TraService_SubscribeServer) error {
+func (s *server) Subscribe(in *pb.TraServiceRequest, stream pb.TraService_SubscribeServer) error {
 	p, _ := peer.FromContext(stream.Context())
 	peer_addr := p.Addr.String()
-	fmt.Printf("GRPC Subscribe Recieved from %s", peer_addr)
+	log.Printf("GRPC Subscribe Recieved from %s", peer_addr)
 
 	streams[stream] = struct{}{}
 
@@ -71,30 +74,33 @@ var change_chan = make(chan struct{})
 func (s *server) Notify() error {
 	for {
 		_ = <-change_chan
-		fmt.Printf("GRPC Notify %+v\n", streams)
+		log.Printf("GRPC Notify %+v", streams)
 		for stream, _ := range streams {
 			if err := stream.Context().Err(); err != nil {
 				delete(streams, stream)
 				continue
 			}
 
-			resp := pb.LskpmcResponse{Lskpmcs: []*pb.Lskpmc{}}
+			r := pb.SubscribeResponse{Lskpmcs: []*pb.Lskpmc{}}
+
 			for k, v := range lskpmcs {
 				lskpmc := pb.Lskpmc{Key :k, Val: v}
-				resp.Lskpmcs = append(resp.Lskpmcs, &lskpmc)
+				r.Lskpmcs = append(r.Lskpmcs, &lskpmc)
 			}
+			resp := pb.TraServiceResponse{ Response: &pb.TraServiceResponse_SubscribeResponse{SubscribeResponse: &r}}
 			stream.Send(&resp)
 
 			p, _ := peer.FromContext(stream.Context())
-			fmt.Printf("     send to %+v\n", p.Addr.String())
+			log.Printf("     send to %+v", p.Addr.String())
 		}
 	}
 }
 
 func grpcServer() {
+	log.Printf("Starting GRPC Server %s", port)
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		fmt.Printf("failed to listen: %v", err)
+		log.Printf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
 	myserver := server{}
@@ -102,7 +108,7 @@ func grpcServer() {
 
 	pb.RegisterTraServiceServer(s, &myserver)
 	if err := s.Serve(lis); err != nil {
-		fmt.Printf("failed to serve: %v", err)
+		log.Printf("failed to serve: %v", err)
 	}
 }
 
@@ -111,15 +117,15 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			fmt.Printf("Read failed:", err)
+			log.Printf("Read failed:", err)
 		}
 		defer r.Body.Close()
 
 		err = json.Unmarshal(b, &lskpmcs)
 		if err != nil {
-			fmt.Printf("json format error:", err)
+			log.Printf("json format error:", err)
 		}
-		fmt.Printf("%s update_data: %#v", r.Method, lskpmcs)
+		log.Printf("%s update_data: %#v", r.Method, lskpmcs)
 
 		change_chan <- struct{}{}
 
@@ -129,11 +135,11 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "GET" {
 		b, err := json.Marshal(lskpmcs)
 		if err != nil {
-			fmt.Printf("json format error:", err)
+			log.Printf("json format error:", err)
 			return
 		}
 
-		fmt.Printf("%s get_data: %#v", r.Method, lskpmcs)
+		log.Printf("%s get_data: %#v", r.Method, lskpmcs)
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -146,6 +152,7 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func httpServer() {
+	log.Printf("Starting HTTP Server %s", ":50052")
 	http.HandleFunc("/lskpmcs", lskpmcsHandler)
 	http.ListenAndServe(":50052", nil)
 }
