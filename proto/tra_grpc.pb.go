@@ -18,8 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TraServiceClient interface {
-	UpdateLskpmc(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error)
-	GetIpFromLskpmc(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error)
+	Create(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error)
+	Update(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error)
+	Retrieve(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error)
+	Delete(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error)
 	Subscribe(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (TraService_SubscribeClient, error)
 }
 
@@ -31,18 +33,36 @@ func NewTraServiceClient(cc grpc.ClientConnInterface) TraServiceClient {
 	return &traServiceClient{cc}
 }
 
-func (c *traServiceClient) UpdateLskpmc(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
+func (c *traServiceClient) Create(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
 	out := new(TraServiceResponse)
-	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/UpdateLskpmc", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *traServiceClient) GetIpFromLskpmc(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
+func (c *traServiceClient) Update(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
 	out := new(TraServiceResponse)
-	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/GetIpFromLskpmc", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *traServiceClient) Retrieve(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
+	out := new(TraServiceResponse)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Retrieve", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *traServiceClient) Delete(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
+	out := new(TraServiceResponse)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +105,10 @@ func (x *traServiceSubscribeClient) Recv() (*TraServiceResponse, error) {
 // All implementations must embed UnimplementedTraServiceServer
 // for forward compatibility
 type TraServiceServer interface {
-	UpdateLskpmc(context.Context, *TraServiceRequest) (*TraServiceResponse, error)
-	GetIpFromLskpmc(context.Context, *TraServiceRequest) (*TraServiceResponse, error)
+	Create(context.Context, *TraServiceRequest) (*TraServiceResponse, error)
+	Update(context.Context, *TraServiceRequest) (*TraServiceResponse, error)
+	Retrieve(context.Context, *TraServiceRequest) (*TraServiceResponse, error)
+	Delete(context.Context, *TraServiceRequest) (*TraServiceResponse, error)
 	Subscribe(*TraServiceRequest, TraService_SubscribeServer) error
 	mustEmbedUnimplementedTraServiceServer()
 }
@@ -95,11 +117,17 @@ type TraServiceServer interface {
 type UnimplementedTraServiceServer struct {
 }
 
-func (UnimplementedTraServiceServer) UpdateLskpmc(context.Context, *TraServiceRequest) (*TraServiceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateLskpmc not implemented")
+func (UnimplementedTraServiceServer) Create(context.Context, *TraServiceRequest) (*TraServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedTraServiceServer) GetIpFromLskpmc(context.Context, *TraServiceRequest) (*TraServiceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetIpFromLskpmc not implemented")
+func (UnimplementedTraServiceServer) Update(context.Context, *TraServiceRequest) (*TraServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedTraServiceServer) Retrieve(context.Context, *TraServiceRequest) (*TraServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Retrieve not implemented")
+}
+func (UnimplementedTraServiceServer) Delete(context.Context, *TraServiceRequest) (*TraServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedTraServiceServer) Subscribe(*TraServiceRequest, TraService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
@@ -117,38 +145,74 @@ func RegisterTraServiceServer(s grpc.ServiceRegistrar, srv TraServiceServer) {
 	s.RegisterService(&TraService_ServiceDesc, srv)
 }
 
-func _TraService_UpdateLskpmc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TraService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TraServiceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TraServiceServer).UpdateLskpmc(ctx, in)
+		return srv.(TraServiceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/UpdateLskpmc",
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TraServiceServer).UpdateLskpmc(ctx, req.(*TraServiceRequest))
+		return srv.(TraServiceServer).Create(ctx, req.(*TraServiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TraService_GetIpFromLskpmc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TraService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TraServiceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TraServiceServer).GetIpFromLskpmc(ctx, in)
+		return srv.(TraServiceServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/GetIpFromLskpmc",
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TraServiceServer).GetIpFromLskpmc(ctx, req.(*TraServiceRequest))
+		return srv.(TraServiceServer).Update(ctx, req.(*TraServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TraService_Retrieve_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TraServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TraServiceServer).Retrieve(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Retrieve",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TraServiceServer).Retrieve(ctx, req.(*TraServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TraService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TraServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TraServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TraServiceServer).Delete(ctx, req.(*TraServiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -182,12 +246,20 @@ var TraService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TraServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UpdateLskpmc",
-			Handler:    _TraService_UpdateLskpmc_Handler,
+			MethodName: "Create",
+			Handler:    _TraService_Create_Handler,
 		},
 		{
-			MethodName: "GetIpFromLskpmc",
-			Handler:    _TraService_GetIpFromLskpmc_Handler,
+			MethodName: "Update",
+			Handler:    _TraService_Update_Handler,
+		},
+		{
+			MethodName: "Retrieve",
+			Handler:    _TraService_Retrieve_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _TraService_Delete_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

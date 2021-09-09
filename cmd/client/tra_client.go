@@ -10,13 +10,16 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"google.golang.org/protobuf/types/known/anypb"
 	pb "github.com/durd07/tra/proto"
 	"google.golang.org/grpc"
 )
 
 const (
-	grpc_addr = "istio-tra.cncs.svc.cluster.local:50053"
-	http_addr = "istio-tra.cncs.svc.cluster.local:50053"
+	//grpc_addr = "istio-tra.cncs.svc.cluster.local:50053"
+	//http_addr = "istio-tra.cncs.svc.cluster.local:50053"
+	grpc_addr = "127.0.0.1:50053"
+	http_addr = "127.0.0.1:50052"
 )
 
 func recvNotification(stream pb.TraService_SubscribeClient) {
@@ -44,7 +47,10 @@ func main() {
 		req := bytes.NewBuffer([]byte(bs))
 
 		body_type := "application/json;charset=utf-8"
-		resp, _ := http.Post("http://" + http_addr + "/lskpmcs", body_type, req)
+		resp, err := http.Post("http://" + http_addr + "/lskpmcs", body_type, req)
+		if err != nil {
+			log.Fatalf("http connection failed %v", err.Error())
+		}
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("POST resp %s\n", string(body))
@@ -68,7 +74,8 @@ func main() {
 	defer cancel()
 
 	log.Printf("GRPC update lskpmc %s\n", "S1F1=192.168.60.001")
-	c.UpdateLskpmc(ctx, &pb.TraServiceRequest{ Request: &pb.TraServiceRequest_UpdateLskpmcRequest{UpdateLskpmcRequest: &pb.UpdateLskpmcRequest{Lskpmc: &pb.Lskpmc{Key: "S1F1", Val: "192.168.60.001"}}}})
+	any_req, err := anypb.New(&pb.CreateRequest{Lskpmc: &pb.Lskpmc{Key: "S1F1", Val: "192.168.60.001"}})
+	c.Create(ctx, &pb.TraServiceRequest{Request: any_req})
 
 	stream, err := c.Subscribe(ctx, &pb.TraServiceRequest{})
 	if err != nil {

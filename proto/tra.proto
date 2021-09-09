@@ -5,6 +5,7 @@ package envoy.extensions.filters.network.sip_proxy.tra.v3;
 //import "envoy/config/core/v3/config_source.proto";
 //import "envoy/config/core/v3/grpc_service.proto";
 
+import "google/protobuf/any.proto";
 //import "validate/validate.proto";
 //import "google/protobuf/duration.proto";
 //import "udpa/annotations/status.proto";
@@ -20,9 +21,10 @@ option java_multiple_files = true;
 // Sip tra :ref:`configuration overview <config_sip_filters_tra>`.
 
 service TraService {
-	rpc UpdateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc GetIpFromLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-
+	rpc Create(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc Update(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc Retrieve(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc Delete(TraServiceRequest) returns (TraServiceResponse) {}
 	rpc Subscribe(TraServiceRequest) returns (stream TraServiceResponse) {}
 }
 
@@ -39,35 +41,42 @@ service TraService {
 //}
 
 message TraServiceRequest {
-	oneof request {
-		UpdateLskpmcRequest update_lskpmc_request = 1;
-		GetIpFromLskpmcRequest get_ip_from_lskpmc_request = 2;
-		SubscribeRequest subscribe_request = 3;
-	}
+        google.protobuf.Any request = 1;
 }
 
 message TraServiceResponse {
-	oneof response {
-		UpdateLskpmcResponse update_lskpmc_response = 1;
-		GetIpFromLskpmcResponse get_ip_from_lskpmc_response = 2;
-		SubscribeResponse subscribe_response = 3;
-	}
-}
-
-message UpdateLskpmcRequest {
-	Lskpmc lskpmc = 1;
-}
-
-message UpdateLskpmcResponse {
 	int32 ret = 1;
+	string reason = 2;
+        google.protobuf.Any response = 3;
 }
 
-message GetIpFromLskpmcRequest {
-	string key = 1;
-}
-
-message GetIpFromLskpmcResponse {
+message CreateRequest {
 	Lskpmc lskpmc = 1;
+}
+
+message CreateResponse {
+}
+
+message UpdateRequest {
+	Lskpmc lskpmc = 1;
+}
+
+message UpdateResponse {
+}
+
+message RetrieveRequest {
+        string lskpmc = 1;
+}
+
+message RetrieveResponse {
+	Lskpmc lskpmc = 1;
+}
+
+message DeleteRequest {
+        string lskpmc = 1;
+}
+
+message DeleteResponse {
 }
 
 message SubscribeRequest {
