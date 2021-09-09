@@ -10,7 +10,7 @@ generate_protobuf:
 	protoc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		proto/tra.proto
-	cp proto/* ${GOPATH}/src/github.com/durd07/tra/proto 
+	cp proto/* ${GOPATH}/src/github.com/durd07/tra/proto
 
 client: generate_protobuf
 	go build -o ./cmd/client/tra_client ./cmd/client

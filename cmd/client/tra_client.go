@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	address = "127.0.0.1:50053"
+	grpc_addr = "istio-tra.cncs.svc.cluster.local:50053"
+	http_addr = "istio-tra.cncs.svc.cluster.local:50053"
 )
 
 func recvNotification(stream pb.TraService_SubscribeClient) {
@@ -43,12 +44,12 @@ func main() {
 		req := bytes.NewBuffer([]byte(bs))
 
 		body_type := "application/json;charset=utf-8"
-		resp, _ := http.Post("http://127.0.0.1:50052/lskpmcs", body_type, req)
+		resp, _ := http.Post("http://" + http_addr + "/lskpmcs", body_type, req)
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		log.Printf("POST resp %s\n", string(body))
 
-		resp, _ = http.Get("http://127.0.0.1:50052/lskpmcs")
+		resp, _ = http.Get("http://" + http_addr + "/lskpmcs")
 		body, _ = ioutil.ReadAll(resp.Body)
 		log.Printf("GET  resp %s\n", string(body))
 	} else {
@@ -56,7 +57,7 @@ func main() {
 	}
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(grpc_addr, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -65,6 +66,9 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100000)
 	defer cancel()
+
+	log.Printf("GRPC update lskpmc %s\n", "S1F1=192.168.60.001")
+	c.UpdateLskpmc(ctx, &pb.TraServiceRequest{ Request: &pb.TraServiceRequest_UpdateLskpmcRequest{UpdateLskpmcRequest: &pb.UpdateLskpmcRequest{Lskpmc: &pb.Lskpmc{Key: "S1F1", Val: "192.168.60.001"}}}})
 
 	stream, err := c.Subscribe(ctx, &pb.TraServiceRequest{})
 	if err != nil {

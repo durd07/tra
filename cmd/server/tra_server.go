@@ -41,6 +41,9 @@ func (s *server) UpdateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*p
 
 	lskpmcs[key] = val
 
+	// Once there are update, notify all subscribers
+	change_chan <- struct{}{}
+
 	return &pb.TraServiceResponse{ Response: &pb.TraServiceResponse_UpdateLskpmcResponse{UpdateLskpmcResponse : &pb.UpdateLskpmcResponse{Ret: 0} }}, nil
 }
 
