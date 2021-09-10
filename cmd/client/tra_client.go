@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"google.golang.org/protobuf/types/known/anypb"
 	pb "github.com/durd07/tra/proto"
 	"google.golang.org/grpc"
 )
@@ -74,8 +73,8 @@ func main() {
 	defer cancel()
 
 	log.Printf("GRPC update lskpmc %s\n", "S1F1=192.168.60.001")
-	any_req, err := anypb.New(&pb.CreateLskpmcRequest{Lskpmc: &pb.Lskpmc{Key: "S1F1", Val: "192.168.60.001"}})
-	c.CreateLskpmc(ctx, &pb.TraServiceRequest{Request: any_req})
+
+	c.UpdateLskpmc(ctx, &pb.TraServiceRequest{Request: &pb.TraServiceRequest_UpdateLskpmcRequest{UpdateLskpmcRequest: &pb.UpdateLskpmcRequest{Lskpmcs: map[string]string{"S1F1": "192.168.60.001"}}}})
 
 	stream, err := c.SubscribeLskpmc(ctx, &pb.TraServiceRequest{})
 	if err != nil {

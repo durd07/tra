@@ -6,15 +6,13 @@ import (
 	"net"
 	"time"
 
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
 
+	pb "github.com/durd07/tra/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
-	proto "google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/anypb"
-	pb "github.com/durd07/tra/proto"
 )
 
 const (
@@ -35,86 +33,53 @@ type server struct {
 func (s *server) CreateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	m := pb.CreateLskpmcRequest{}
-	err := anypb.UnmarshalTo(in.Request, &m, proto.UnmarshalOptions{})
-	if err != nil {
-		log.Fatalf("GRPC Create Unmarshal failed")
-		return &pb.TraServiceResponse{ Ret: -1, Reason: err.Error()}, nil
+	req_lskpmcs := in.GetCreateLskpmcRequest().GetLskpmcs()
+	log.Printf("GRPC Create Received from %s : %v", p.Addr.String(), req_lskpmcs)
+
+	for k, v := range req_lskpmcs {
+		lskpmcs[k] = v
 	}
-
-	key := m.Lskpmc.Key
-	val := m.Lskpmc.Val
-	log.Printf("GRPC Create Received from %s : %v=%v", p.Addr.String(), key, val)
-
-	lskpmcs[key] = val
 
 	// Once there are update, notify all subscribers
 	change_chan <- struct{}{}
 
-	return &pb.TraServiceResponse{ Ret: 0}, nil
+	return &pb.TraServiceResponse{Ret: 0}, nil
 }
 
 func (s *server) UpdateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	m := pb.UpdateLskpmcRequest{}
-	err := anypb.UnmarshalTo(in.Request, &m, proto.UnmarshalOptions{})
-	if err != nil {
-		log.Fatalf("GRPC Update Unmarshal failed")
-		return &pb.TraServiceResponse{ Ret: -1, Reason: err.Error()}, nil
+	req_lskpmcs := in.GetCreateLskpmcRequest().GetLskpmcs()
+	log.Printf("GRPC Update Received from %s : %v", p.Addr.String(), req_lskpmcs)
+
+	for k, v := range req_lskpmcs {
+		lskpmcs[k] = v
 	}
-
-	key := m.Lskpmc.Key
-	val := m.Lskpmc.Val
-	log.Printf("GRPC Update Received from %s : %v=%v", p.Addr.String(), key, val)
-
-	lskpmcs[key] = val
 
 	// Once there are update, notify all subscribers
 	change_chan <- struct{}{}
 
-	return &pb.TraServiceResponse{ Ret: 0}, nil
+	return &pb.TraServiceResponse{Ret: 0}, nil
 }
 
 func (s *server) RetrieveLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	m := pb.RetrieveLskpmcRequest{}
-	err := anypb.UnmarshalTo(in.Request, &m, proto.UnmarshalOptions{})
-	if err != nil {
-		log.Fatalf("GRPC Retrieve Unmarshal failed")
-		return &pb.TraServiceResponse{ Ret: -1, Reason: err.Error()}, nil
-	}
-
-	key := m.Lskpmc
+	key := in.GetRetrieveLskpmcRequest().GetLskpmc()
 	log.Printf("GRPC Retrieve Received from %s : %v", p.Addr.String(), key)
 
-	// Once there are update, notify all subscribers
-	change_chan <- struct{}{}
-
-	any_resp, err := anypb.New(&pb.RetrieveLskpmcResponse{Lskpmc: &pb.Lskpmc{Key: key, Val: lskpmcs[key]}})
-	return &pb.TraServiceResponse{ Ret: 0, Response: any_resp}, nil
+	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_RetrieveLskpmcResponse{RetrieveLskpmcResponse: &pb.RetrieveLskpmcResponse{Lskpmcs: map[string]string{key: lskpmcs[key]}}}}, nil
 }
 
 func (s *server) DeleteLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	m := pb.DeleteLskpmcRequest{}
-	err := anypb.UnmarshalTo(in.Request, &m, proto.UnmarshalOptions{})
-	if err != nil {
-		log.Fatalf("GRPC Delete Unmarshal failed")
-		return &pb.TraServiceResponse{ Ret: -1, Reason: err.Error()}, nil
-	}
-
-	key := m.Lskpmc
+	key := in.GetDeleteLskpmcRequest().GetLskpmc()
 	log.Printf("GRPC Delete Received from %s : %v", p.Addr.String(), key)
 
 	delete(lskpmcs, key)
 
-	// Once there are update, notify all subscribers
-	change_chan <- struct{}{}
-
-	return &pb.TraServiceResponse{ Ret: 0}, nil
+	return &pb.TraServiceResponse{Ret: 0}, nil
 }
 
 func (s *server) SubscribeLskpmc(in *pb.TraServiceRequest, stream pb.TraService_SubscribeLskpmcServer) error {
@@ -147,15 +112,7 @@ func (s *server) Notify() error {
 				continue
 			}
 
-			r := pb.SubscribeLskpmcResponse{Lskpmcs: []*pb.Lskpmc{}}
-
-			for k, v := range lskpmcs {
-				lskpmc := pb.Lskpmc{Key :k, Val: v}
-				r.Lskpmcs = append(r.Lskpmcs, &lskpmc)
-			}
-
-			any_resp, _ := anypb.New(&r)
-			resp := pb.TraServiceResponse{Ret: 0, Response: any_resp}
+			resp := pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_SubscribeLskpmcResponse{SubscribeLskpmcResponse: &pb.SubscribeLskpmcResponse{Lskpmcs: lskpmcs}}}
 			stream.Send(&resp)
 
 			p, _ := peer.FromContext(stream.Context())
@@ -179,7 +136,6 @@ func grpcServer() {
 		log.Printf("failed to serve: %v", err)
 	}
 }
-
 
 func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
@@ -207,7 +163,7 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Printf("%s get_data: %#v", r.Method, lskpmcs)
+		log.Printf("%s  get_data: %#v", r.Method, lskpmcs)
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -224,7 +180,6 @@ func httpServer() {
 	http.HandleFunc("/lskpmcs", lskpmcsHandler)
 	http.ListenAndServe(http_port, nil)
 }
-
 
 func main() {
 	go grpcServer()

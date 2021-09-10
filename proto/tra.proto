@@ -5,7 +5,6 @@ package envoy.extensions.filters.network.sip_proxy.tra.v3;
 //import "envoy/config/core/v3/config_source.proto";
 //import "envoy/config/core/v3/grpc_service.proto";
 
-import "google/protobuf/any.proto";
 //import "validate/validate.proto";
 //import "google/protobuf/duration.proto";
 //import "udpa/annotations/status.proto";
@@ -21,11 +20,11 @@ option java_multiple_files = true;
 // Sip tra :ref:`configuration overview <config_sip_filters_tra>`.
 
 service TraService {
-	rpc CreateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc UpdateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc RetrieveLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc DeleteLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-	rpc SubscribeLskpmc(TraServiceRequest) returns (stream TraServiceResponse) {}
+  rpc CreateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc UpdateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc RetrieveLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc DeleteLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc SubscribeLskpmc(TraServiceRequest) returns (stream TraServiceResponse) {}
 }
 
 //message TraServiceConfig {
@@ -41,39 +40,51 @@ service TraService {
 //}
 
 message TraServiceRequest {
-        google.protobuf.Any request = 1;
+  oneof request {
+    CreateLskpmcRequest create_lskpmc_request = 1;
+    UpdateLskpmcRequest update_lskpmc_request = 2;
+    RetrieveLskpmcRequest retrieve_lskpmc_request = 3;
+    DeleteLskpmcRequest delete_lskpmc_request = 4;
+    SubscribeLskpmcRequest subscribe_lskpmc_request = 5;
+  }
 }
 
 message TraServiceResponse {
 	int32 ret = 1;
 	string reason = 2;
-        google.protobuf.Any response = 3;
+  oneof response {
+    CreateLskpmcResponse create_lskpmc_response = 3;
+    UpdateLskpmcResponse update_lskpmc_response = 4;
+    RetrieveLskpmcResponse retrieve_lskpmc_response = 5;
+    DeleteLskpmcResponse delete_lskpmc_response = 6;
+    SubscribeLskpmcResponse subscribe_lskpmc_response = 7;
+  }
 }
 
 message CreateLskpmcRequest {
-	Lskpmc lskpmc = 1;
+  map<string, string> lskpmcs = 1;
 }
 
 message CreateLskpmcResponse {
 }
 
 message UpdateLskpmcRequest {
-	Lskpmc lskpmc = 1;
+  map<string, string> lskpmcs = 1;
 }
 
 message UpdateLskpmcResponse {
 }
 
 message RetrieveLskpmcRequest {
-        string lskpmc = 1;
+  string lskpmc = 1;
 }
 
 message RetrieveLskpmcResponse {
-	Lskpmc lskpmc = 1;
+  map<string, string> lskpmcs = 1;
 }
 
 message DeleteLskpmcRequest {
-        string lskpmc = 1;
+  string lskpmc = 1;
 }
 
 message DeleteLskpmcResponse {
@@ -83,10 +94,5 @@ message SubscribeLskpmcRequest {
 }
 
 message SubscribeLskpmcResponse {
-	repeated Lskpmc lskpmcs = 1;
-}
-
-message Lskpmc {
-	string key = 1;
-	string val = 2;
+  map<string, string> lskpmcs = 1;
 }
