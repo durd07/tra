@@ -43,7 +43,7 @@ func (s *server) CreateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*p
 	// Once there are update, notify all subscribers
 	change_chan <- struct{}{}
 
-	return &pb.TraServiceResponse{Ret: 0}, nil
+	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_CreateLskpmcResponse{CreateLskpmcResponse: &pb.CreateLskpmcResponse{}}}, nil
 }
 
 func (s *server) UpdateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
@@ -59,7 +59,7 @@ func (s *server) UpdateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*p
 	// Once there are update, notify all subscribers
 	change_chan <- struct{}{}
 
-	return &pb.TraServiceResponse{Ret: 0}, nil
+	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_UpdateLskpmcResponse{UpdateLskpmcResponse: &pb.UpdateLskpmcResponse{}}}, nil
 }
 
 func (s *server) RetrieveLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
@@ -79,7 +79,7 @@ func (s *server) DeleteLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*p
 
 	delete(lskpmcs, key)
 
-	return &pb.TraServiceResponse{Ret: 0}, nil
+	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_DeleteLskpmcResponse{DeleteLskpmcResponse: &pb.DeleteLskpmcResponse{}}}, nil
 }
 
 func (s *server) SubscribeLskpmc(in *pb.TraServiceRequest, stream pb.TraService_SubscribeLskpmcServer) error {

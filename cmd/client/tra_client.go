@@ -76,6 +76,9 @@ func main() {
 
 	c.UpdateLskpmc(ctx, &pb.TraServiceRequest{Request: &pb.TraServiceRequest_UpdateLskpmcRequest{UpdateLskpmcRequest: &pb.UpdateLskpmcRequest{Lskpmcs: map[string]string{"S1F1": "192.168.60.001"}}}})
 
+	resp, err := c.RetrieveLskpmc(ctx, &pb.TraServiceRequest{Request: &pb.TraServiceRequest_RetrieveLskpmcRequest{RetrieveLskpmcRequest: &pb.RetrieveLskpmcRequest{Lskpmc: "XXXX"}}})
+	log.Printf("GRPC retrieve lskpmc XXXX %v", resp)
+
 	stream, err := c.SubscribeLskpmc(ctx, &pb.TraServiceRequest{})
 	if err != nil {
 		log.Fatalf("could not query node : %v", err)
