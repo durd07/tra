@@ -21,11 +21,11 @@ option java_multiple_files = true;
 // Sip tra :ref:`configuration overview <config_sip_filters_tra>`.
 
 service TraService {
-	rpc Create(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc Update(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc Retrieve(TraServiceRequest) returns (TraServiceResponse) {}
-        rpc Delete(TraServiceRequest) returns (TraServiceResponse) {}
-	rpc Subscribe(TraServiceRequest) returns (stream TraServiceResponse) {}
+	rpc CreateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc UpdateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc RetrieveLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+        rpc DeleteLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
+	rpc SubscribeLskpmc(TraServiceRequest) returns (stream TraServiceResponse) {}
 }
 
 //message TraServiceConfig {
@@ -50,39 +50,39 @@ message TraServiceResponse {
         google.protobuf.Any response = 3;
 }
 
-message CreateRequest {
+message CreateLskpmcRequest {
 	Lskpmc lskpmc = 1;
 }
 
-message CreateResponse {
+message CreateLskpmcResponse {
 }
 
-message UpdateRequest {
+message UpdateLskpmcRequest {
 	Lskpmc lskpmc = 1;
 }
 
-message UpdateResponse {
+message UpdateLskpmcResponse {
 }
 
-message RetrieveRequest {
+message RetrieveLskpmcRequest {
         string lskpmc = 1;
 }
 
-message RetrieveResponse {
+message RetrieveLskpmcResponse {
 	Lskpmc lskpmc = 1;
 }
 
-message DeleteRequest {
+message DeleteLskpmcRequest {
         string lskpmc = 1;
 }
 
-message DeleteResponse {
+message DeleteLskpmcResponse {
 }
 
-message SubscribeRequest {
+message SubscribeLskpmcRequest {
 }
 
-message SubscribeResponse {
+message SubscribeLskpmcResponse {
 	repeated Lskpmc lskpmcs = 1;
 }
 

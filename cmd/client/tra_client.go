@@ -22,7 +22,7 @@ const (
 	http_addr = "127.0.0.1:50052"
 )
 
-func recvNotification(stream pb.TraService_SubscribeClient) {
+func recvNotification(stream pb.TraService_SubscribeLskpmcClient) {
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -74,10 +74,10 @@ func main() {
 	defer cancel()
 
 	log.Printf("GRPC update lskpmc %s\n", "S1F1=192.168.60.001")
-	any_req, err := anypb.New(&pb.CreateRequest{Lskpmc: &pb.Lskpmc{Key: "S1F1", Val: "192.168.60.001"}})
-	c.Create(ctx, &pb.TraServiceRequest{Request: any_req})
+	any_req, err := anypb.New(&pb.CreateLskpmcRequest{Lskpmc: &pb.Lskpmc{Key: "S1F1", Val: "192.168.60.001"}})
+	c.CreateLskpmc(ctx, &pb.TraServiceRequest{Request: any_req})
 
-	stream, err := c.Subscribe(ctx, &pb.TraServiceRequest{})
+	stream, err := c.SubscribeLskpmc(ctx, &pb.TraServiceRequest{})
 	if err != nil {
 		log.Fatalf("could not query node : %v", err)
 	}
