@@ -92,6 +92,7 @@ func (s *server) SubscribeLskpmc(in *pb.TraServiceRequest, stream pb.TraService_
 	change_chan <- struct{}{}
 	for {
 		if err := stream.Context().Err(); err != nil {
+			log.Printf("remove %s from stream", p.Addr.String())
 			delete(streams, stream)
 			break
 		}

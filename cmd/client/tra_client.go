@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"io"
-	"time"
+	//"time"
 	"bytes"
 	"io/ioutil"
 	"encoding/json"
@@ -69,8 +69,9 @@ func main() {
 	defer conn.Close()
 	c := pb.NewTraServiceClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100000)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), time.Second*100000)
+	//defer cancel()
+	ctx := context.Background()
 
 	log.Printf("GRPC update lskpmc %s\n", "S1F1=192.168.60.001")
 
