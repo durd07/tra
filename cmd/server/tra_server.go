@@ -13,6 +13,11 @@ import (
 	pb "github.com/durd07/tra/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
+
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -175,10 +180,33 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func sipInternalNodesHandler(w http.ResponseWriter, r *http.Request)
+{
+	// creates the in-cluster config
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	tas_tra_srv, err := clientset.CoreV1().Services("cncs").Get(context.TODO(), "tas-tra", metav1.GetOptions{})
+	if errors.IsNotFound(err) {
+		log.Printf("No tas-tra service found")
+	} else {}
+}
+
 func httpServer() {
 	log.Printf("Starting HTTP Server %s", http_port)
 	http.HandleFunc("/lskpmcs", lskpmcsHandler)
+	http.HandleFunc("/SIP/INT/nodes", sipInternalNodesHandler)
 	http.ListenAndServe(http_port, nil)
+}
+
+func init() {
 }
 
 func main() {
