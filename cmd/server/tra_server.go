@@ -71,7 +71,7 @@ func (s *server) RetrieveLskpmc(ctx context.Context, in *pb.TraServiceRequest) (
 	p, _ := peer.FromContext(ctx)
 
 	key := in.GetRetrieveLskpmcRequest().GetLskpmc()
-	log.Printf("GRPC Retrieve Received from %s : %v", p.Addr.String(), key)
+	log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, lskpmcs[key])
 
 	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_RetrieveLskpmcResponse{RetrieveLskpmcResponse: &pb.RetrieveLskpmcResponse{Lskpmcs: map[string]string{key: lskpmcs[key]}}}}, nil
 }
@@ -97,6 +97,7 @@ func (s *server) SubscribeLskpmc(in *pb.TraServiceRequest, stream pb.TraService_
 	change_chan <- struct{}{}
 	for {
 		if err := stream.Context().Err(); err != nil {
+			log.Printf("remove %s from stream", p.Addr.String())
 			delete(streams, stream)
 			break
 		}
