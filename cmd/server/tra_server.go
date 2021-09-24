@@ -159,6 +159,7 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 
 		change_chan <- struct{}{}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		return
@@ -171,18 +172,19 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("%s  get_data: %#v", r.Method, lskpmcs)
 
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Write(b)
 	} else {
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		return
 	}
 }
 
-func sipInternalNodesHandler(w http.ResponseWriter, r *http.Request)
-{
+func sipInternalNodesHandler(w http.ResponseWriter, r *http.Request) {
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -194,10 +196,18 @@ func sipInternalNodesHandler(w http.ResponseWriter, r *http.Request)
 		panic(err.Error())
 	}
 
-	tas_tra_srv, err := clientset.CoreV1().Services("cncs").Get(context.TODO(), "tas-tra", metav1.GetOptions{})
+	tas_tra_srv, err := clientset.CoreV1().Services("cncs").Get(context.TODO(), "stas-stdn", metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		log.Printf("No tas-tra service found")
-	} else {}
+	} else {
+		clusterIp := tas_tra_srv.Spec.ClusterIP
+		w.Write([]byte("[{\"fqdn\":\"stas-stdn.cncs.svc.cluster.local\",\"nodes\":[{\"nodeid\":0,\"ip\":\"" + clusterIp + "\",\"sipport\":5060,\"weight\":100}]}]"))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	return
 }
 
 func httpServer() {

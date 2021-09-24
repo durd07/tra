@@ -33,7 +33,7 @@ func recvNotification(stream pb.TraService_SubscribeLskpmcClient) {
 			log.Fatalf("failed to recv %v", err)
 		}
 
-		log.Printf("RECV NOTIFY %v %v\n", resp, err)
+		log.Printf("RECV NOTIFY %v %v\n", resp.GetSubscribeLskpmcResponse().Lskpmcs, err)
 	}
 }
 
