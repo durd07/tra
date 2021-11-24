@@ -21,7 +21,7 @@ const (
 	http_addr = "127.0.0.1:50052"
 )
 
-func recvNotification(stream pb.TraService_SubscribeLskpmcClient) {
+func recvNotification(stream pb.TraService_SubscribeClient) {
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -33,7 +33,7 @@ func recvNotification(stream pb.TraService_SubscribeLskpmcClient) {
 			log.Fatalf("failed to recv %v", err)
 		}
 
-		log.Printf("RECV NOTIFY %v %v\n", resp.GetSubscribeLskpmcResponse().Lskpmcs, err)
+		log.Printf("RECV NOTIFY %v %v\n", resp.GetSubscribeResponse().GetData(), err)
 	}
 }
 
@@ -75,12 +75,12 @@ func main() {
 
 	log.Printf("GRPC update lskpmc %s\n", "S1F1=192.168.60.001")
 
-	c.UpdateLskpmc(ctx, &pb.TraServiceRequest{Request: &pb.TraServiceRequest_UpdateLskpmcRequest{UpdateLskpmcRequest: &pb.UpdateLskpmcRequest{Lskpmcs: map[string]string{"S1F1": "192.168.60.001"}}}})
+	c.Update(ctx, &pb.TraServiceRequest{Type: "lskpmc", Request: &pb.TraServiceRequest_UpdateRequest{UpdateRequest: &pb.UpdateRequest{Data: map[string]string{"S1F1": "192.168.60.001"}}}})
 
-	resp, err := c.RetrieveLskpmc(ctx, &pb.TraServiceRequest{Request: &pb.TraServiceRequest_RetrieveLskpmcRequest{RetrieveLskpmcRequest: &pb.RetrieveLskpmcRequest{Lskpmc: "XXXX"}}})
+	resp, err := c.Retrieve(ctx, &pb.TraServiceRequest{Type: "lskpmc", Request: &pb.TraServiceRequest_RetrieveRequest{RetrieveRequest: &pb.RetrieveRequest{Key: "XXXX"}}})
 	log.Printf("GRPC retrieve lskpmc XXXX %v", resp)
 
-	stream, err := c.SubscribeLskpmc(ctx, &pb.TraServiceRequest{})
+	stream, err := c.Subscribe(ctx, &pb.TraServiceRequest{Type:"lskpmc"})
 	if err != nil {
 		log.Fatalf("could not query node : %v", err)
 	}

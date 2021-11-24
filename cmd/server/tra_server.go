@@ -27,7 +27,8 @@ const (
 
 var (
 	lskpmcs = make(map[string]string)
-	streams = make(map[pb.TraService_SubscribeLskpmcServer]struct{})
+	xafis   = make(map[string]string)
+	streams = make(map[string]map[pb.TraService_SubscribeServer]struct{})
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -35,70 +36,110 @@ type server struct {
 	pb.UnimplementedTraServiceServer
 }
 
-func (s *server) CreateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
+func (s *server) Create(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	req_lskpmcs := in.GetCreateLskpmcRequest().GetLskpmcs()
-	log.Printf("GRPC Create Received from %s : %v", p.Addr.String(), req_lskpmcs)
+	in_type := in.GetType()
+	req_data := in.GetCreateRequest().GetData()
+	log.Printf("GRPC Create Received from %s : %v", p.Addr.String(), req_data)
 
-	for k, v := range req_lskpmcs {
-		lskpmcs[k] = v
+	switch in_type {
+	case "lskpmc":
+		for k, v := range req_data {
+			lskpmcs[k] = v
+		}
+	case "xafi":
+		for k, v := range req_data {
+			xafis[k] = v
+		}
 	}
 
 	// Once there are update, notify all subscribers
-	change_chan <- struct{}{}
+	change_chan <- in_type
 
-	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_CreateLskpmcResponse{CreateLskpmcResponse: &pb.CreateLskpmcResponse{}}}, nil
+	return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_CreateResponse{CreateResponse: &pb.CreateResponse{}}}, nil
 }
 
-func (s *server) UpdateLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
+func (s *server) Update(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	req_lskpmcs := in.GetCreateLskpmcRequest().GetLskpmcs()
-	log.Printf("GRPC Update Received from %s : %v", p.Addr.String(), req_lskpmcs)
+	in_type := in.GetType()
+	req_data := in.GetCreateRequest().GetData()
+	log.Printf("GRPC Update Received from %s : %v", p.Addr.String(), req_data)
 
-	for k, v := range req_lskpmcs {
-		lskpmcs[k] = v
+	switch in_type {
+	case "lskpmc":
+		for k, v := range req_data {
+			lskpmcs[k] = v
+		}
+	case "xafi":
+		for k, v := range req_data {
+			xafis[k] = v
+		}
 	}
 
 	// Once there are update, notify all subscribers
-	change_chan <- struct{}{}
+	change_chan <- in_type
 
-	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_UpdateLskpmcResponse{UpdateLskpmcResponse: &pb.UpdateLskpmcResponse{}}}, nil
+	return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_UpdateResponse{UpdateResponse: &pb.UpdateResponse{}}}, nil
 }
 
-func (s *server) RetrieveLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
+func (s *server) Retrieve(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	key := in.GetRetrieveLskpmcRequest().GetLskpmc()
-	log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, lskpmcs[key])
+	in_type := in.GetType()
+	key := in.GetRetrieveRequest().GetKey()
 
-	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_RetrieveLskpmcResponse{RetrieveLskpmcResponse: &pb.RetrieveLskpmcResponse{Lskpmcs: map[string]string{key: lskpmcs[key]}}}}, nil
+	switch in_type {
+	case "lskpmc":
+		log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, lskpmcs[key])
+
+		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: lskpmcs[key]}}}}, nil
+	case "xafi":
+		log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, xafis[key])
+
+		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: xafis[key]}}}}, nil
+	default:
+		return &pb.TraServiceResponse{Type: in_type, Ret: -1, Reason: "Invalid Type", Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{}}}}, nil
+	}
+
 }
 
-func (s *server) DeleteLskpmc(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
+func (s *server) Delete(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraServiceResponse, error) {
 	p, _ := peer.FromContext(ctx)
 
-	key := in.GetDeleteLskpmcRequest().GetLskpmc()
+	in_type := in.GetType()
+	key := in.GetDeleteRequest().GetKey()
 	log.Printf("GRPC Delete Received from %s : %v", p.Addr.String(), key)
 
-	delete(lskpmcs, key)
+	switch in_type {
+	case "lskpmc":
+		delete(lskpmcs, key)
+	case "xafi":
+		delete(xafis, key)
+	}
 
-	return &pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_DeleteLskpmcResponse{DeleteLskpmcResponse: &pb.DeleteLskpmcResponse{}}}, nil
+	return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_DeleteResponse{DeleteResponse: &pb.DeleteResponse{}}}, nil
 }
 
-func (s *server) SubscribeLskpmc(in *pb.TraServiceRequest, stream pb.TraService_SubscribeLskpmcServer) error {
+func (s *server) Subscribe(in *pb.TraServiceRequest, stream pb.TraService_SubscribeServer) error {
 	p, _ := peer.FromContext(stream.Context())
 	peer_addr := p.Addr.String()
 	log.Printf("GRPC Subscribe Recieved from %s", peer_addr)
 
-	streams[stream] = struct{}{}
+	in_type := in.GetType()
 
-	change_chan <- struct{}{}
+	if (streams[in_type] == nil) {
+		streams[in_type] = make(map[pb.TraService_SubscribeServer]struct{})
+	}
+
+	streams[in_type][stream] = struct{}{}
+
+	change_chan <- in_type
 	for {
 		if err := stream.Context().Err(); err != nil {
 			log.Printf("remove %s from stream", p.Addr.String())
-			delete(streams, stream)
+			delete(streams[in_type], stream)
 			break
 		}
 		time.Sleep(time.Second)
@@ -106,20 +147,26 @@ func (s *server) SubscribeLskpmc(in *pb.TraServiceRequest, stream pb.TraService_
 	return nil
 }
 
-var change_chan = make(chan struct{})
+var change_chan = make(chan string)
 
 func (s *server) Notify() error {
 	for {
-		_ = <-change_chan
-		log.Printf("GRPC Notify %+v", streams)
-		for stream, _ := range streams {
+		change_type := <-change_chan
+		log.Printf("GRPC Notify %+v", streams[change_type])
+		for stream, _ := range streams[change_type] {
 			if err := stream.Context().Err(); err != nil {
-				delete(streams, stream)
+				delete(streams[change_type], stream)
 				continue
 			}
 
-			resp := pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_SubscribeLskpmcResponse{SubscribeLskpmcResponse: &pb.SubscribeLskpmcResponse{Lskpmcs: lskpmcs}}}
-			stream.Send(&resp)
+			switch change_type {
+			case "lskpmc":
+				resp := pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_SubscribeResponse{SubscribeResponse: &pb.SubscribeResponse{Data: lskpmcs}}}
+				stream.Send(&resp)
+			case "xafi":
+				resp := pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_SubscribeResponse{SubscribeResponse: &pb.SubscribeResponse{Data: lskpmcs}}}
+				stream.Send(&resp)
+			}
 
 			p, _ := peer.FromContext(stream.Context())
 			log.Printf("     send to %+v", p.Addr.String())
@@ -157,7 +204,7 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("%s update_data: %#v", r.Method, lskpmcs)
 
-		change_chan <- struct{}{}
+		change_chan <- "lskpmc"
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -171,6 +218,47 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("%s  get_data: %#v", r.Method, lskpmcs)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Write(b)
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
+	}
+}
+
+func xafisHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		b, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Read failed:", err)
+		}
+		defer r.Body.Close()
+
+		err = json.Unmarshal(b, &xafis)
+		if err != nil {
+			log.Printf("json format error:", err)
+		}
+		log.Printf("%s update_data: %#v", r.Method, xafis)
+
+		change_chan <- "xafi"
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
+	} else if r.Method == "GET" {
+		b, err := json.Marshal(xafis)
+		if err != nil {
+			log.Printf("json format error:", err)
+			return
+		}
+
+		log.Printf("%s  get_data: %#v", r.Method, xafis)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -213,6 +301,7 @@ func sipInternalNodesHandler(w http.ResponseWriter, r *http.Request) {
 func httpServer() {
 	log.Printf("Starting HTTP Server %s", http_port)
 	http.HandleFunc("/lskpmcs", lskpmcsHandler)
+	http.HandleFunc("/xafis", xafisHandler)
 	http.HandleFunc("/SIP/INT/nodes", sipInternalNodesHandler)
 	http.ListenAndServe(http_port, nil)
 }

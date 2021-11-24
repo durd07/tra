@@ -20,11 +20,11 @@ option java_multiple_files = true;
 // Sip tra :ref:`configuration overview <config_sip_filters_tra>`.
 
 service TraService {
-  rpc CreateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-  rpc UpdateLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-  rpc RetrieveLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-  rpc DeleteLskpmc(TraServiceRequest) returns (TraServiceResponse) {}
-  rpc SubscribeLskpmc(TraServiceRequest) returns (stream TraServiceResponse) {}
+  rpc Create(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc Update(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc Retrieve(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc Delete(TraServiceRequest) returns (TraServiceResponse) {}
+  rpc Subscribe(TraServiceRequest) returns (stream TraServiceResponse) {}
 }
 
 //message TraServiceConfig {
@@ -40,59 +40,61 @@ service TraService {
 //}
 
 message TraServiceRequest {
+  string type = 1;
   oneof request {
-    CreateLskpmcRequest create_lskpmc_request = 1;
-    UpdateLskpmcRequest update_lskpmc_request = 2;
-    RetrieveLskpmcRequest retrieve_lskpmc_request = 3;
-    DeleteLskpmcRequest delete_lskpmc_request = 4;
-    SubscribeLskpmcRequest subscribe_lskpmc_request = 5;
+    CreateRequest create_request = 2;
+    UpdateRequest update_request = 3;
+    RetrieveRequest retrieve_request = 4;
+    DeleteRequest delete_request = 5;
+    SubscribeRequest subscribe_request = 6;
   }
 }
 
 message TraServiceResponse {
-	int32 ret = 1;
-	string reason = 2;
+  string type = 1;
+  int32 ret = 2;
+  string reason = 3;
   oneof response {
-    CreateLskpmcResponse create_lskpmc_response = 3;
-    UpdateLskpmcResponse update_lskpmc_response = 4;
-    RetrieveLskpmcResponse retrieve_lskpmc_response = 5;
-    DeleteLskpmcResponse delete_lskpmc_response = 6;
-    SubscribeLskpmcResponse subscribe_lskpmc_response = 7;
+    CreateResponse create_response = 4;
+    UpdateResponse update_response = 5;
+    RetrieveResponse retrieve_response = 6;
+    DeleteResponse delete_response = 7;
+    SubscribeResponse subscribe_response = 8;
   }
 }
 
-message CreateLskpmcRequest {
-  map<string, string> lskpmcs = 1;
+message CreateRequest {
+  map<string, string> data = 1;
 }
 
-message CreateLskpmcResponse {
+message CreateResponse {
 }
 
-message UpdateLskpmcRequest {
-  map<string, string> lskpmcs = 1;
+message UpdateRequest {
+  map<string, string> data = 1;
 }
 
-message UpdateLskpmcResponse {
+message UpdateResponse {
 }
 
-message RetrieveLskpmcRequest {
-  string lskpmc = 1;
+message RetrieveRequest {
+  string key = 1;
 }
 
-message RetrieveLskpmcResponse {
-  map<string, string> lskpmcs = 1;
+message RetrieveResponse {
+  map<string, string> data = 1;
 }
 
-message DeleteLskpmcRequest {
-  string lskpmc = 1;
+message DeleteRequest {
+  string key = 1;
 }
 
-message DeleteLskpmcResponse {
+message DeleteResponse {
 }
 
-message SubscribeLskpmcRequest {
+message SubscribeRequest {
 }
 
-message SubscribeLskpmcResponse {
-  map<string, string> lskpmcs = 1;
+message SubscribeResponse {
+  map<string, string> data = 1;
 }
