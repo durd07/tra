@@ -80,6 +80,10 @@ func main() {
 	resp, err := c.Retrieve(ctx, &pb.TraServiceRequest{Type: "lskpmc", Request: &pb.TraServiceRequest_RetrieveRequest{RetrieveRequest: &pb.RetrieveRequest{Key: "XXXX"}}})
 	log.Printf("GRPC retrieve lskpmc XXXX %v", resp)
 
+	// SKEY query
+	resp, err = c.Retrieve(ctx, &pb.TraServiceRequest{Type: "skey", Request: &pb.TraServiceRequest_RetrieveRequest{RetrieveRequest: &pb.RetrieveRequest{Key: "12345"}}})
+	log.Printf("GRPC retrieve skey 12345 %v", resp)
+
 	stream, err := c.Subscribe(ctx, &pb.TraServiceRequest{Type:"lskpmc"})
 	if err != nil {
 		log.Fatalf("could not query node : %v", err)
