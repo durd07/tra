@@ -35,7 +35,7 @@ func NewTraServiceClient(cc grpc.ClientConnInterface) TraServiceClient {
 
 func (c *traServiceClient) Create(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
 	out := new(TraServiceResponse)
-	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (c *traServiceClient) Create(ctx context.Context, in *TraServiceRequest, op
 
 func (c *traServiceClient) Update(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
 	out := new(TraServiceResponse)
-	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (c *traServiceClient) Update(ctx context.Context, in *TraServiceRequest, op
 
 func (c *traServiceClient) Retrieve(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
 	out := new(TraServiceResponse)
-	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Retrieve", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Retrieve", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (c *traServiceClient) Retrieve(ctx context.Context, in *TraServiceRequest, 
 
 func (c *traServiceClient) Delete(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (*TraServiceResponse, error) {
 	out := new(TraServiceResponse)
-	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *traServiceClient) Delete(ctx context.Context, in *TraServiceRequest, op
 }
 
 func (c *traServiceClient) Subscribe(ctx context.Context, in *TraServiceRequest, opts ...grpc.CallOption) (TraService_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TraService_ServiceDesc.Streams[0], "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &TraService_ServiceDesc.Streams[0], "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func _TraService_Create_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Create",
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TraServiceServer).Create(ctx, req.(*TraServiceRequest))
@@ -173,7 +173,7 @@ func _TraService_Update_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Update",
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TraServiceServer).Update(ctx, req.(*TraServiceRequest))
@@ -191,7 +191,7 @@ func _TraService_Retrieve_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Retrieve",
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Retrieve",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TraServiceServer).Retrieve(ctx, req.(*TraServiceRequest))
@@ -209,7 +209,7 @@ func _TraService_Delete_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3.TraService/Delete",
+		FullMethod: "/envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TraServiceServer).Delete(ctx, req.(*TraServiceRequest))
@@ -242,7 +242,7 @@ func (x *traServiceSubscribeServer) Send(m *TraServiceResponse) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var TraService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "envoy.extensions.filters.network.sip_proxy.tra.v3.TraService",
+	ServiceName: "envoy.extensions.filters.network.sip_proxy.tra.v3alpha.TraService",
 	HandlerType: (*TraServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

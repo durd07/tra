@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package envoy.extensions.filters.network.sip_proxy.tra.v3;
+package envoy.extensions.filters.network.sip_proxy.tra.v3alpha;
 
 //import "envoy/config/core/v3/config_source.proto";
 //import "envoy/config/core/v3/grpc_service.proto";
@@ -11,7 +11,7 @@ package envoy.extensions.filters.network.sip_proxy.tra.v3;
 //import "udpa/annotations/versioning.proto";
 
 option go_package = "github.com/durd07/tra";
-option java_package = "io.envoyproxy.envoy.extensions.filters.network.sip_proxy.tra.v3";
+option java_package = "io.envoyproxy.envoy.extensions.filters.network.sip_proxy.tra.v3alpha";
 option java_outer_classname = "TraProto";
 option java_multiple_files = true;
 //option (udpa.annotations.file_status).package_version_status = ACTIVE;
