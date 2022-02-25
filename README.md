@@ -4,3 +4,4 @@ protoc --go_out=$GO_PATH/src/github.com/durd07/tra/proto --go_opt=paths=source_r
     proto/tra.proto
 
 
+edit
