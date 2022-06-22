@@ -21,5 +21,5 @@ server: generate_protobuf
 docker: client server
 	cp ./cmd/client/tra_client ./docker
 	cp ./cmd/server/tra_server ./docker
-	docker build -t felixdu.hz.dynamic.nsn-net.net/tra:v0.1 ./docker
-	docker push felixdu.hz.dynamic.nsn-net.net/tra:v0.1
+	docker build --build-arg http_proxy=http://10.158.100.2:8080 --build-arg https_proxy=http://10.158.100.2:8080 -t cncs-build2.dynamic.nsn-net.net/tra:v0.2 ./docker
+	docker push cncs-build2.dynamic.nsn-net.net/tra:v0.2

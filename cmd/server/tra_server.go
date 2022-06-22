@@ -228,6 +228,15 @@ func lskpmcsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Write(b)
+	} else if r.Method == "DELETE" {
+		// clear all lskpmcs
+		lskpmcs = make(map[string]string)
+		log.Printf("%s clear all lskpmcs: %#v", r.Method, lskpmcs)
+		change_chan <- "lskpmc"
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
 	} else {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -269,6 +278,15 @@ func xafisHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Write(b)
+	} else if r.Method == "DELETE" {
+		// clear all xafis
+		xafis = make(map[string]string)
+		log.Printf("%s clear all xafis: %#v", r.Method, lskpmcs)
+		change_chan <- "xafi"
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
 	} else {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
