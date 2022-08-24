@@ -112,10 +112,10 @@ func (s *server) Retrieve(ctx context.Context, in *pb.TraServiceRequest) (*pb.Tr
 		// DDD
 		//value := query_skey(key)
 		//log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, value)
-		log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, xkeys[key])
+		log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, skeys[key])
 
 		//return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: value}}}}, nil
-		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: xkeys[key]}}}}, nil
+		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: skeys[key]}}}}, nil
 	default:
 		return &pb.TraServiceResponse{Type: in_type, Ret: -1, Reason: "Invalid Type", Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{}}}}, nil
 	}
