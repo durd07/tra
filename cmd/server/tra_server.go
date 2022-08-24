@@ -28,6 +28,7 @@ const (
 var (
 	lskpmcs = make(map[string]string)
 	xafis   = make(map[string]string)
+	skeys   = make(map[string]string)
 	streams = make(map[string]map[pb.TraService_SubscribeServer]struct{})
 )
 
@@ -51,6 +52,10 @@ func (s *server) Create(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraS
 	case "xafi":
 		for k, v := range req_data {
 			xafis[k] = v
+		}
+	case "skey":
+		for k, v := range req_data {
+			skeys[k] = v
 		}
 	}
 
@@ -76,6 +81,10 @@ func (s *server) Update(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraS
 		for k, v := range req_data {
 			xafis[k] = v
 		}
+	case "skey":
+		for k, v := range req_data {
+			skeys[k] = v
+		}
 	}
 
 	// Once there are update, notify all subscribers
@@ -100,10 +109,13 @@ func (s *server) Retrieve(ctx context.Context, in *pb.TraServiceRequest) (*pb.Tr
 
 		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: xafis[key]}}}}, nil
 	case "skey":
-		value := query_skey(key)
-		log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, value)
+		// DDD
+		//value := query_skey(key)
+		//log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, value)
+		log.Printf("GRPC Retrieve Received from %s : %v=%v", p.Addr.String(), key, xkeys[key])
 
-		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: value}}}}, nil
+		//return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: value}}}}, nil
+		return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{key: xkeys[key]}}}}, nil
 	default:
 		return &pb.TraServiceResponse{Type: in_type, Ret: -1, Reason: "Invalid Type", Response: &pb.TraServiceResponse_RetrieveResponse{RetrieveResponse: &pb.RetrieveResponse{Data: map[string]string{}}}}, nil
 	}
@@ -122,6 +134,8 @@ func (s *server) Delete(ctx context.Context, in *pb.TraServiceRequest) (*pb.TraS
 		delete(lskpmcs, key)
 	case "xafi":
 		delete(xafis, key)
+	case "skey":
+		delete(skeys, key)
 	}
 
 	return &pb.TraServiceResponse{Type: in_type, Ret: 0, Response: &pb.TraServiceResponse_DeleteResponse{DeleteResponse: &pb.DeleteResponse{}}}, nil
@@ -170,6 +184,9 @@ func (s *server) Notify() error {
 				stream.Send(&resp)
 			case "xafi":
 				resp := pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_SubscribeResponse{SubscribeResponse: &pb.SubscribeResponse{Data: lskpmcs}}}
+				stream.Send(&resp)
+			case "skey":
+				resp := pb.TraServiceResponse{Ret: 0, Response: &pb.TraServiceResponse_SubscribeResponse{SubscribeResponse: &pb.SubscribeResponse{Data: skeys}}}
 				stream.Send(&resp)
 			}
 
@@ -295,6 +312,56 @@ func xafisHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func skeysHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		b, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Read failed:", err)
+		}
+		defer r.Body.Close()
+
+		err = json.Unmarshal(b, &skeys)
+		if err != nil {
+			log.Printf("json format error:", err)
+		}
+		log.Printf("%s update_data: %#v", r.Method, skeys)
+
+		change_chan <- "skey"
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
+	} else if r.Method == "GET" {
+		b, err := json.Marshal(skeys)
+		if err != nil {
+			log.Printf("json format error:", err)
+			return
+		}
+
+		log.Printf("%s  get_data: %#v", r.Method, skeys)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Write(b)
+	} else if r.Method == "DELETE" {
+		// clear all skeys
+		skeys = make(map[string]string)
+		log.Printf("%s clear all skeys: %#v", r.Method, lskpmcs)
+		change_chan <- "skey"
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		return
+	}
+}
+
 func sipInternalNodesHandler(w http.ResponseWriter, r *http.Request) {
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
@@ -325,6 +392,7 @@ func httpServer() {
 	log.Printf("Starting HTTP Server %s", http_port)
 	http.HandleFunc("/lskpmcs", lskpmcsHandler)
 	http.HandleFunc("/xafis", xafisHandler)
+	http.HandleFunc("/skeys", skeysHandler)
 	http.HandleFunc("/SIP/INT/nodes", sipInternalNodesHandler)
 	http.ListenAndServe(http_port, nil)
 }
